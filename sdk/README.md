@@ -29,12 +29,10 @@ const ix = createWithdrawInstruction(
 ## Exports
 
 ```typescript
-import { createWithdrawInstruction, PROGRAM_ID, FEE_WALLET, FEE_LAMPORTS } from "@heymike/send";
+import { createWithdrawInstruction, PROGRAM_ID } from "@heymike/send";
 ```
 
 | Export                     | Value                                           |
 | -------------------------- | ----------------------------------------------- |
-| `createWithdrawInstruction`| Returns an `IInstruction`                        |
+| `createWithdrawInstruction`| Returns an `Instruction`                        |
 | `PROGRAM_ID`               | `W1AA3tfuCifNKeV9WKVwyasPwXu9o1H44NZCKZcSEND`  |
-| `FEE_WALLET`               | `yyvY1cHtcQHbsPk4UYdHhjtoYQjYCX41RqF8U3dSEND`  |
-| `FEE_LAMPORTS`             | `500_000` (0.0005 SOL)                           |
