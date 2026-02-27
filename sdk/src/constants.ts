@@ -12,3 +12,8 @@ export const FEE_WALLET: Address = address(
 
 /** Fee amount in lamports (0.0005 SOL) */
 export const FEE_LAMPORTS = 500_000;
+
+/** System program address */
+export const SYSTEM_PROGRAM: Address = address(
+  "11111111111111111111111111111111"
+);

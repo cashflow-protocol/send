@@ -1,6 +1,6 @@
 {
   "name": "@heymike/send",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "TypeScript SDK for the Send Solana program",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,12 +9,10 @@
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
-  "peerDependencies": {
-    "@solana/kit": "^2.0.0"
+  "dependencies": {
+    "@solana/kit": "^2.1.0"
   },
   "devDependencies": {
-    "@solana/kit": "^2.1.0",
-    "@solana-program/system": "^0.7.0",
     "typescript": "^5.7.3"
   },
   "license": "MIT"

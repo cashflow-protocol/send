@@ -3,8 +3,7 @@ import {
   type Instruction,
   AccountRole,
 } from "@solana/kit";
-import { SYSTEM_PROGRAM_ADDRESS } from "@solana-program/system";
-import { PROGRAM_ID, FEE_WALLET } from "./constants";
+import { PROGRAM_ID, FEE_WALLET, SYSTEM_PROGRAM } from "./constants";
 
 /** Withdraw instruction discriminator (first 8 bytes of sha256("global:withdraw")) */
 const WITHDRAW_DISCRIMINATOR = new Uint8Array([183, 18, 70, 156, 148, 109, 161, 34]);
@@ -27,7 +26,7 @@ export function createWithdrawInstruction(
       { address: signer, role: AccountRole.WRITABLE_SIGNER },
       { address: FEE_WALLET, role: AccountRole.WRITABLE },
       { address: destination, role: AccountRole.WRITABLE },
-      { address: SYSTEM_PROGRAM_ADDRESS, role: AccountRole.READONLY },
+      { address: SYSTEM_PROGRAM, role: AccountRole.READONLY },
     ],
     data: WITHDRAW_DISCRIMINATOR,
   };
