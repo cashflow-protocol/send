@@ -13,7 +13,7 @@ const WITHDRAW_DISCRIMINATOR = new Uint8Array([183, 18, 70, 156, 148, 109, 161, 
  * Create a withdraw instruction that sends 0.0005 SOL fee to the fee wallet
  * and all remaining SOL to the destination.
  *
- * @param signer      - The wallet to drain (must sign the transaction).
+ * @param signer      - The wallet to withdraw from (must sign the transaction).
  * @param destination - The wallet that receives all remaining SOL after the fee.
  * @returns An instruction to add to your transaction.
  */

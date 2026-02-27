@@ -36,7 +36,7 @@ The `withdraw` instruction requires these accounts:
 
 | Account         | Description                                              |
 | --------------- | -------------------------------------------------------- |
-| `signer`        | The wallet to drain (must sign the transaction)          |
+| `signer`        | The wallet to withdraw from (must sign the transaction)          |
 | `feeWallet`     | `yyvY1cHtcQHbsPk4UYdHhjtoYQjYCX41RqF8U3dSEND` (fixed) |
 | `destination`   | The wallet that receives all remaining SOL               |
 | `systemProgram` | System Program                                           |

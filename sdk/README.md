@@ -19,7 +19,7 @@ import { createWithdrawInstruction } from "@heymike/send";
 import { address } from "@solana/kit";
 
 const ix = createWithdrawInstruction(
-  address("SIGNER_ADDRESS"),      // wallet to drain (must sign)
+  address("SIGNER_ADDRESS"),      // wallet to withdraw from (must sign)
   address("DESTINATION_ADDRESS")  // wallet that receives remaining SOL
 );
 
