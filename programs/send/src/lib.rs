@@ -26,22 +26,19 @@ pub mod send {
         )?;
 
         // Transfer remaining SOL (minus leave_lamports) to destination
-        let remaining = signer
-            .to_account_info()
-            .lamports()
-            .checked_sub(leave_lamports)
-            .ok_or(ProgramError::InsufficientFunds)?;
-
-        system_program::transfer(
-            CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
-                system_program::Transfer {
-                    from: signer.to_account_info(),
-                    to: ctx.accounts.destination.to_account_info(),
-                },
-            ),
-            remaining,
-        )?;
+        let balance = signer.to_account_info().lamports();
+        if balance > leave_lamports {
+            system_program::transfer(
+                CpiContext::new(
+                    ctx.accounts.system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: signer.to_account_info(),
+                        to: ctx.accounts.destination.to_account_info(),
+                    },
+                ),
+                balance - leave_lamports,
+            )?;
+        }
 
         Ok(())
     }
