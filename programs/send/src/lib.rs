@@ -10,7 +10,7 @@ const FEE_LAMPORTS: u64 = 500_000; // 0.0005 SOL
 pub mod send {
     use super::*;
 
-    pub fn withdraw(ctx: Context<Withdraw>) -> Result<()> {
+    pub fn withdraw(ctx: Context<Withdraw>, leave_lamports: u64) -> Result<()> {
         let signer = &ctx.accounts.signer;
 
         // Transfer 0.0005 SOL fee to fee wallet
@@ -25,8 +25,13 @@ pub mod send {
             FEE_LAMPORTS,
         )?;
 
-        // Transfer all remaining SOL to destination
-        let remaining = signer.to_account_info().lamports();
+        // Transfer remaining SOL (minus leave_lamports) to destination
+        let remaining = signer
+            .to_account_info()
+            .lamports()
+            .checked_sub(leave_lamports)
+            .ok_or(ProgramError::InsufficientFunds)?;
+
         system_program::transfer(
             CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),

@@ -40,7 +40,7 @@ async function withdraw(destinationAddress: string) {
   console.log();
 
   const tx = await program.methods
-    .withdraw()
+    .withdraw(new anchor.BN(0))
     .accounts({
       signer: signer.publicKey,
       destination,

@@ -36,12 +36,10 @@ describe("send", () => {
 
     // Call withdraw
     const tx = await program.methods
-      .withdraw()
+      .withdraw(new anchor.BN(0))
       .accounts({
         signer: signer.publicKey,
-        feeWallet: FEE_WALLET,
         destination: destination.publicKey,
-        systemProgram: SystemProgram.programId,
       })
       .signers([signer])
       .rpc();
@@ -92,12 +90,10 @@ describe("send", () => {
 
     try {
       await program.methods
-        .withdraw()
+        .withdraw(new anchor.BN(0))
         .accounts({
           signer: signer.publicKey,
-          feeWallet: FEE_WALLET,
           destination: destination.publicKey,
-          systemProgram: SystemProgram.programId,
         })
         .signers([signer])
         .rpc();
