@@ -32,36 +32,32 @@ anchor deploy --provider.cluster mainnet
 
 ## Usage
 
-The `withdraw` instruction requires these accounts:
+### TypeScript SDK
 
-| Account         | Description                                              |
-| --------------- | -------------------------------------------------------- |
-| `signer`        | The wallet to withdraw from (must sign the transaction)          |
-| `feeWallet`     | `yyvY1cHtcQHbsPk4UYdHhjtoYQjYCX41RqF8U3dSEND` (fixed) |
-| `destination`   | The wallet that receives all remaining SOL               |
-| `systemProgram` | System Program                                           |
-
-### TypeScript example
+```bash
+npm install @heymike/send
+```
 
 ```typescript
-import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { createWithdrawInstruction } from "@heymike/send";
+import { address } from "@solana/kit";
 
-const FEE_WALLET = new PublicKey("yyvY1cHtcQHbsPk4UYdHhjtoYQjYCX41RqF8U3dSEND");
+// Send all SOL to destination
+const ix = createWithdrawInstruction(
+  address("SIGNER_ADDRESS"),
+  address("DESTINATION_ADDRESS")
+);
 
-await program.methods
-  .withdraw()
-  .accounts({
-    signer: wallet.publicKey,
-    feeWallet: FEE_WALLET,
-    destination: new PublicKey("DESTINATION_WALLET_ADDRESS"),
-    systemProgram: SystemProgram.programId,
-  })
-  .rpc();
+// Keep 0.01 SOL on the signer wallet
+const ix = createWithdrawInstruction(
+  address("SIGNER_ADDRESS"),
+  address("DESTINATION_ADDRESS"),
+  10_000_000 // lamports to leave on signer
+);
 ```
 
 ## Program ID
 
 ```
-91KnrZkPWxKpuGoeT4bNi9wFprSjRQ5xGueUutAUFutQ
+W1AA3tfuCifNKeV9WKVwyasPwXu9o1H44NZCKZcSEND
 ```

@@ -18,9 +18,17 @@ Peer dependency: `@solana/kit`
 import { createWithdrawInstruction } from "@heymike/send";
 import { address } from "@solana/kit";
 
+// Send all SOL to destination
 const ix = createWithdrawInstruction(
   address("SIGNER_ADDRESS"),      // wallet to withdraw from (must sign)
   address("DESTINATION_ADDRESS")  // wallet that receives remaining SOL
+);
+
+// Keep 0.01 SOL on the signer wallet
+const ix = createWithdrawInstruction(
+  address("SIGNER_ADDRESS"),
+  address("DESTINATION_ADDRESS"),
+  10_000_000 // lamports to leave on signer
 );
 
 // add to your transaction and send however you prefer
