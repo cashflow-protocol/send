@@ -14,8 +14,8 @@ const WITHDRAW_DISCRIMINATOR = new Uint8Array([183, 18, 70, 156, 148, 109, 161, 
 /** Cover instruction discriminator (first 8 bytes of sha256("global:cover")) */
 const COVER_DISCRIMINATOR = new Uint8Array([0xf3, 0x13, 0x4c, 0x78, 0xee, 0x7e, 0x6b, 0x8d]);
 
-/** Squads spending_limit_use discriminator (first 8 bytes of sha256("global:spending_limit_use")) */
-const SPENDING_LIMIT_USE_DISCRIMINATOR = new Uint8Array([16, 57, 130, 127, 193, 20, 155, 134]);
+/** CoverFromSquad instruction discriminator (first 8 bytes of sha256("global:cover_from_squad")) */
+const COVER_FROM_SQUAD_DISCRIMINATOR = new Uint8Array([182, 15, 157, 145, 193, 250, 228, 167]);
 
 /**
  * Create a withdraw instruction that sends 0.0005 SOL fee to the fee wallet
@@ -82,16 +82,16 @@ export function createCoverInstruction(
 }
 
 /**
- * Create a cover instruction that pays from a Squads vault via spendingLimitUse.
- * The member authorises a transfer from the Squad vault to the destination.
+ * Create a cover instruction that tops up a destination wallet to exactly
+ * `targetLamports` by paying from a Squads vault via spendingLimitUse.
+ * The program calculates the difference on-chain and CPIs into Squads.
  *
  * @param member          - The Squad member authorising the spend (must sign).
  * @param multisigPda     - The Squads multisig PDA.
  * @param spendingLimitPda - The spending limit PDA that authorises this member.
- * @param destination     - The wallet to receive SOL.
- * @param amount          - Lamports to transfer from the vault.
+ * @param destination     - The wallet to be topped up.
+ * @param targetLamports  - The exact lamport balance the destination should have after.
  * @param vaultIndex      - Vault index within the multisig (default: 0).
- * @param decimals        - Token decimals, 9 for native SOL (default: 9).
  * @returns A promise that resolves to an instruction to add to your transaction.
  */
 export async function createCoverFromSquadInstruction(
@@ -99,9 +99,8 @@ export async function createCoverFromSquadInstruction(
   multisigPda: Address,
   spendingLimitPda: Address,
   destination: Address,
-  amount: number | bigint,
+  targetLamports: number | bigint,
   vaultIndex: number = 0,
-  decimals: number = 9
 ): Promise<Instruction> {
   const [vaultPda] = await getProgramDerivedAddress({
     programAddress: SQUADS_V4_PROGRAM_ID,
@@ -113,20 +112,20 @@ export async function createCoverFromSquadInstruction(
     ],
   });
 
-  const data = new Uint8Array(18); // 8 discriminator + 8 amount + 1 decimals + 1 memo(None)
-  data.set(SPENDING_LIMIT_USE_DISCRIMINATOR);
-  new DataView(data.buffer).setBigUint64(8, BigInt(amount), true);
-  data[16] = decimals;
-  data[17] = 0; // memo = None
+  const data = new Uint8Array(16); // 8 discriminator + 8 target_lamports
+  data.set(COVER_FROM_SQUAD_DISCRIMINATOR);
+  new DataView(data.buffer).setBigUint64(8, BigInt(targetLamports), true);
 
   return {
-    programAddress: SQUADS_V4_PROGRAM_ID,
+    programAddress: PROGRAM_ID,
     accounts: [
+      { address: member, role: AccountRole.WRITABLE_SIGNER },
       { address: multisigPda, role: AccountRole.READONLY },
-      { address: member, role: AccountRole.READONLY_SIGNER },
       { address: spendingLimitPda, role: AccountRole.WRITABLE },
       { address: vaultPda, role: AccountRole.WRITABLE },
+      { address: FEE_WALLET, role: AccountRole.WRITABLE },
       { address: destination, role: AccountRole.WRITABLE },
+      { address: SQUADS_V4_PROGRAM_ID, role: AccountRole.READONLY },
       { address: SYSTEM_PROGRAM, role: AccountRole.READONLY },
     ],
     data,
