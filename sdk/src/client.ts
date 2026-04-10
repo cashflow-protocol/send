@@ -82,23 +82,24 @@ export function createCoverInstruction(
 }
 
 /**
- * Create a cover instruction that tops up a destination wallet to exactly
- * `targetLamports` by paying from a Squads vault via spendingLimitUse.
- * The program calculates the difference on-chain and CPIs into Squads.
+ * Create a cover instruction that tops up the signer (destination) wallet to
+ * exactly `targetLamports` by paying from a Squads vault via spendingLimitUse.
+ * The program calculates the difference on-chain, CPIs into Squads for
+ * (diff + fee), then transfers the fee from the signer to the fee wallet.
  *
+ * @param signer          - The destination wallet to be topped up; pays gas and forwards fee (must sign).
  * @param member          - The Squad member authorising the spend (must sign).
  * @param multisigPda     - The Squads multisig PDA.
  * @param spendingLimitPda - The spending limit PDA that authorises this member.
- * @param destination     - The wallet to be topped up.
- * @param targetLamports  - The exact lamport balance the destination should have after.
+ * @param targetLamports  - The exact lamport balance the signer should have after.
  * @param vaultIndex      - Vault index within the multisig (default: 0).
  * @returns A promise that resolves to an instruction to add to your transaction.
  */
 export async function createCoverFromSquadInstruction(
+  signer: Address,
   member: Address,
   multisigPda: Address,
   spendingLimitPda: Address,
-  destination: Address,
   targetLamports: number | bigint,
   vaultIndex: number = 0,
 ): Promise<Instruction> {
@@ -119,12 +120,12 @@ export async function createCoverFromSquadInstruction(
   return {
     programAddress: PROGRAM_ID,
     accounts: [
-      { address: member, role: AccountRole.WRITABLE_SIGNER },
+      { address: signer, role: AccountRole.WRITABLE_SIGNER },
+      { address: member, role: AccountRole.READONLY_SIGNER },
       { address: multisigPda, role: AccountRole.READONLY },
       { address: spendingLimitPda, role: AccountRole.WRITABLE },
       { address: vaultPda, role: AccountRole.WRITABLE },
       { address: FEE_WALLET, role: AccountRole.WRITABLE },
-      { address: destination, role: AccountRole.WRITABLE },
       { address: SQUADS_V4_PROGRAM_ID, role: AccountRole.READONLY },
       { address: SYSTEM_PROGRAM, role: AccountRole.READONLY },
     ],

@@ -87,7 +87,7 @@ pub mod send {
     }
 
     pub fn cover_from_squad(ctx: Context<CoverFromSquad>, target_lamports: u64) -> Result<()> {
-        let destination_balance = ctx.accounts.destination.to_account_info().lamports();
+        let destination_balance = ctx.accounts.signer.to_account_info().lamports();
 
         if destination_balance >= target_lamports {
             msg!("Destination already has {} lamports, target is {}", destination_balance, target_lamports);
@@ -96,10 +96,12 @@ pub mod send {
 
         let amount = target_lamports - destination_balance;
 
-        // Build spending_limit_use instruction data: discriminator + amount(u64) + decimals(u8) + memo(None)
+        // CPI into Squads spending_limit_use for (amount + fee) → signer (destination)
+        let spend_amount = amount + FEE_LAMPORTS;
+
         let mut data = Vec::with_capacity(18);
         data.extend_from_slice(&SPENDING_LIMIT_USE_DISCRIMINATOR);
-        data.extend_from_slice(&amount.to_le_bytes());
+        data.extend_from_slice(&spend_amount.to_le_bytes());
         data.push(9); // decimals = 9 (native SOL)
         data.push(0); // memo = None
 
@@ -110,7 +112,7 @@ pub mod send {
                 AccountMeta::new_readonly(ctx.accounts.member.key(), true),
                 AccountMeta::new(ctx.accounts.spending_limit.key(), false),
                 AccountMeta::new(ctx.accounts.vault.key(), false),
-                AccountMeta::new(ctx.accounts.destination.key(), false),
+                AccountMeta::new(ctx.accounts.signer.key(), false),
                 AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
             ],
             data,
@@ -123,9 +125,21 @@ pub mod send {
                 ctx.accounts.member.to_account_info(),
                 ctx.accounts.spending_limit.to_account_info(),
                 ctx.accounts.vault.to_account_info(),
-                ctx.accounts.destination.to_account_info(),
+                ctx.accounts.signer.to_account_info(),
                 ctx.accounts.system_program.to_account_info(),
             ],
+        )?;
+
+        // Transfer fee from signer (destination) to fee wallet
+        system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                system_program::Transfer {
+                    from: ctx.accounts.signer.to_account_info(),
+                    to: ctx.accounts.fee_wallet.to_account_info(),
+                },
+            ),
+            FEE_LAMPORTS,
         )?;
 
         Ok(())
@@ -171,8 +185,11 @@ pub struct Cover<'info> {
 
 #[derive(Accounts)]
 pub struct CoverFromSquad<'info> {
-    /// Squad member authorising the spend
+    /// Destination wallet — receives SOL from vault, pays gas, forwards fee
     #[account(mut)]
+    pub signer: Signer<'info>,
+
+    /// Squad member authorising the spend
     pub member: Signer<'info>,
 
     /// CHECK: Squads multisig PDA
@@ -189,10 +206,6 @@ pub struct CoverFromSquad<'info> {
     /// CHECK: Hardcoded fee wallet, validated by address constraint
     #[account(mut, address = FEE_WALLET)]
     pub fee_wallet: AccountInfo<'info>,
-
-    /// CHECK: Destination wallet to be topped up to target_lamports
-    #[account(mut)]
-    pub destination: AccountInfo<'info>,
 
     /// CHECK: Squads V4 program for CPI
     #[account(address = SQUADS_V4_PROGRAM_ID)]
